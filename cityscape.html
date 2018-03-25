@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Cityscape</title>
+    <style>* { padding: 0; margin: 0; } canvas {display: block; margin: 0 auto; }</style>
+</head>
+<body>
+
+<canvas id="myCanvas"></canvas>
+
+<script>
+    var canvas = document.getElementById("myCanvas");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    canvas.style.backgroundColor = "black";
+    var ctx = canvas.getContext("2d");
+    function Shape(x,y,width,height) {
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+    }
+    function building(x,y,width,height,color) {
+        Shape.call(this,x,y,width,height);
+        this.color = color;
+        this.wndwX = [];
+        this.wndwY = [];
+    }
+    function wndw() {
+        this.width = 10;
+        this.height = 10;
+        this.color = "black";
+    }
+    function highway(x,y,width,height) {
+        Shape.call(this,x,y,width,height);
+        this.color = "grey";
+        this.demarcatorColor = "#977c20";
+        this.partition = this.height/2.8;
+    }
+    function car(h,width,height,color,velX) {
+        this.width = width;
+        this.height = height;
+        this.x = Math.floor(Math.random() * canvas.width + 0);
+        if (this.x >= canvas.width/2) {
+            this.x = canvas.width + 20;
+            this.y = h.y + h.partition - 30;
+            this.velX = -velX;
+        }
+        else {
+            this.x = -40;
+            this.y = h.y + h.partition + 30;
+            this.velX = velX;
+        }
+        this.color = color;
+    }
+    function star(x,y) {
+        this.x = x;
+        this.y = y;
+    }
+    building.prototype.draw = function() {
+        ctx.fillStyle = this.color;
+        ctx.fillRect(this.x,this.y,this.width,this.height);
+        ctx.strokeRect(this.x,this.y,this.width,this.height);
+    };
+    wndw.prototype.draw = function(b) {
+        var i,j;    
+        ctx.fillStyle = this.color;
+        for (i=b.y + this.height; i<b.y+b.height; i+=this.height+this.width) {
+            for (j=b.x + this.width; j<b.x + b.width; j+=this.width+this.height) {
+                    ctx.strokeRect(j,i,this.width, this.height);
+                    ctx.fillRect(j,i,this.width,this.height);
+                    b.wndwX.push(j);
+                    b.wndwY.push(i);
+            }
+        }
+    };
+    wndw.prototype.flashingLights = function(b) {
+        var u;
+        var rand = Math.floor(Math.random() * b.wndwX.length + 0);
+        var i = b.wndwX[rand];
+        var j = b.wndwY[rand];
+        // var pixel = ctx.getImageData(i + 5,j + 5,1,1);
+        // alert(pixel[0]);
+        ctx.fillStyle = "white";
+        ctx.strokeRect(i,j,this.width,this.height);
+        ctx.fillRect(i,j,this.width,this.height);
+    };
+    highway.prototype.draw = function() {
+        ctx.fillStyle = this.color;
+        ctx.fillRect(this.x,this.y,this.width,this.height);
+        ctx.strokeRect(this.x,this.y,this.width,this.height);
+        ctx.fillStyle = "#4d595b";
+        ctx.fillRect(this.x,this.y - 5, this.width, 5);
+        ctx.strokeRect(this.x,this.y - 5,this.width,5);
+        ctx.fillRect(this.x,this.y + this.height - 10, this.width, 10);
+        ctx.strokeRect(this.x,this.y + this.height - 10, this.width, 10);
+        ctx.fillStyle = this.demarcatorColor;
+        ctx.fillRect(this.x,this.y+this.partition,this.width,7);
+        ctx.strokeRect(this.x,this.y+this.partition,this.width,7);
+        ctx.fillStyle = "#4f4f4f";
+        ctx.fillRect(this.x,this.y+this.partition+7,this.width,10);
+        ctx.fillStyle = "#115045";
+        ctx.fillRect(this.x,this.y + this.height, this.width, 30);
+        ctx.strokeRect(this.x,this.y + this.height, this.width, 30);
+        
+    };
+    car.prototype.draw = function() {
+        ctx.fillStyle = this.color;
+        ctx.fillRect(this.x, this.y, this.width, this.height);
+        ctx.strokeRect(this.x, this.y, this.width, this.height);
+    };
+    car.prototype.moveCar = function() {
+        this.x+=this.velX;
+    };
+    highway.prototype.avoidCrashes = function(cars) {
+        for (i = 0;i<cars.length-1;i++) {
+            for (j=i+1;j<cars.length;j++) {
+                if (cars[i].y == cars[i].y) {
+                    if (cars[i].velX < 0) {
+                        cars[i].y = cars[i].y - 20;
+                    }
+                    else {
+                        cars[i].y = cars[i].y + 20;
+                    }
+                }
+            }
+        }
+    };
+    star.prototype.twinkle = function() {
+        ctx.beginPath();
+        ctx.strokeStyle = "white";
+        ctx.moveTo(this.x,this.y);
+        ctx.lineTo(this.x,this.y + 10);
+        ctx.moveTo(this.x,this.y);
+        ctx.lineTo(this.x,this.y - 10);
+        ctx.moveTo(this.x,this.y);
+        ctx.lineTo(this.x-10,this.y);
+        ctx.moveTo(this.x,this.y);
+        ctx.lineTo(this.x+10,this.y);
+        ctx.stroke();
+        if (Math.floor(Math.random() * (3-1) + 1) == 1) {
+            ctx.moveTo(this.x,this.y);
+            ctx.lineTo(this.x - 7,this.y - 7);
+            ctx.moveTo(this.x,this.y);
+            ctx.lineTo(this.x - 7,this.y + 7);
+            ctx.moveTo(this.x,this.y);
+            ctx.lineTo(this.x + 7,this.y - 7);
+            ctx.moveTo(this.x,this.y);
+            ctx.lineTo(this.x + 7,this.y + 7);
+            ctx.stroke();
+        }
+        ctx.strokeStyle = "black";
+        ctx.closePath();
+    };
+    function randomColor() {
+        return 'rgba(' + Math.random() * 255 + ' , ' + Math.random() * 255 + ' , ' + Math.random() * 255 + ')';
+    }
+    function randomVel() {
+        return Math.random() * (5-1) + 5;
+    }
+    var count = 0;
+    var b = new building(400,210,110,70,"#74bb90");
+    var b2 = new building(500,110,210,170,"#a566c2");
+    var b4 = new building(523,8,50,100,"#e5872a");
+    var b6 = new building(700,210,170,70,"white");
+    var w = new wndw();
+    var h = new highway(0,280,canvas.width,150);
+    var car1 = new car(h,40,20,"pink",1);
+    var car2 = new car(h,40,20,"red",2);
+    var car3 = new car(h,40,20,"blue",3);
+    var car4 = new car(h,40,20,"purple",4);
+    var car5 = new car(h,40,20,"green",5);
+    var cars = [car1,car2,car3,car4,car5];
+    var star1 = new star(50,50);
+    function miniproject() {
+        var i;
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        b6.draw();
+        w.draw(b6);
+        b4.draw();
+        w.draw(b4);
+        b.draw();
+        w.draw(b);
+        b2.draw();
+        w.draw(b2);
+        h.draw();
+        star1.twinkle();
+        w.flashingLights(b);
+        w.flashingLights(b2);
+        w.flashingLights(b4);
+        w.flashingLights(b6);
+        for (i = 0;i<5;i++) {
+            cars[i].draw();
+            cars[i].moveCar();
+            if (cars[i].x > canvas.width + 100 || cars[i].x < -100) {
+                delete cars[i];
+                cars[i] = new car(h,40,20,randomColor(), randomVel());
+            }
+        }
+        requestAnimationFrame(miniproject);
+    }
+    miniproject();
+</script>
+
+</body>
+</html>
