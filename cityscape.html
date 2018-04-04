@@ -38,7 +38,7 @@
         this.demarcatorColor = "#977c20";
         this.partition = this.height/2.8;
     }
-    function car(h,width,height,color,velX) {
+    function car(h,width,height,color,velX,exists) {
         this.width = width;
         this.height = height;
         this.x = Math.floor(Math.random() * canvas.width + 0);
@@ -53,10 +53,12 @@
             this.velX = velX;
         }
         this.color = color;
+        this.exists = true;
     }
-    function star(x,y) {
+    function star(x,y,size) {
         this.x = x;
         this.y = y;
+        this.size = size;
     }
     building.prototype.draw = function() {
         ctx.fillStyle = this.color;
@@ -113,41 +115,30 @@
     car.prototype.moveCar = function() {
         this.x+=this.velX;
     };
-    highway.prototype.avoidCrashes = function(cars) {
-        for (i = 0;i<cars.length-1;i++) {
-            for (j=i+1;j<cars.length;j++) {
-                if (cars[i].y == cars[i].y) {
-                    if (cars[i].velX < 0) {
-                        cars[i].y = cars[i].y - 20;
-                    }
-                    else {
-                        cars[i].y = cars[i].y + 20;
-                    }
-                }
-            }
-        }
+    highway.prototype.avoidCrashes = function(cars,carindex) {
+        
     };
     star.prototype.twinkle = function() {
         ctx.beginPath();
         ctx.strokeStyle = "white";
         ctx.moveTo(this.x,this.y);
-        ctx.lineTo(this.x,this.y + 10);
+        ctx.lineTo(this.x,this.y + this.size);
         ctx.moveTo(this.x,this.y);
-        ctx.lineTo(this.x,this.y - 10);
+        ctx.lineTo(this.x,this.y - this.size);
         ctx.moveTo(this.x,this.y);
-        ctx.lineTo(this.x-10,this.y);
+        ctx.lineTo(this.x-this.size,this.y);
         ctx.moveTo(this.x,this.y);
-        ctx.lineTo(this.x+10,this.y);
+        ctx.lineTo(this.x+this.size,this.y);
         ctx.stroke();
         if (Math.floor(Math.random() * (3-1) + 1) == 1) {
             ctx.moveTo(this.x,this.y);
-            ctx.lineTo(this.x - 7,this.y - 7);
+            ctx.lineTo(this.x - 5*this.size/6,this.y - 5*this.size/6);
             ctx.moveTo(this.x,this.y);
-            ctx.lineTo(this.x - 7,this.y + 7);
+            ctx.lineTo(this.x - 5*this.size/6,this.y + 5*this.size/6);
             ctx.moveTo(this.x,this.y);
-            ctx.lineTo(this.x + 7,this.y - 7);
+            ctx.lineTo(this.x + 5*this.size/6,this.y - 5*this.size/6);
             ctx.moveTo(this.x,this.y);
-            ctx.lineTo(this.x + 7,this.y + 7);
+            ctx.lineTo(this.x + 5*this.size/6,this.y + 5*this.size/6);
             ctx.stroke();
         }
         ctx.strokeStyle = "black";
@@ -158,6 +149,14 @@
     }
     function randomVel() {
         return Math.random() * (5-1) + 5;
+    }
+    function drawMoon() {
+        ctx.beginPath();
+        ctx.arc(200,75,50,0,2*Math.PI);
+        ctx.fillStyle = "white";
+        ctx.fill();
+        ctx.fillStyle = "black";
+        ctx.closePath();
     }
     var count = 0;
     var b = new building(400,210,110,70,"#74bb90");
@@ -172,7 +171,8 @@
     var car4 = new car(h,40,20,"purple",4);
     var car5 = new car(h,40,20,"green",5);
     var cars = [car1,car2,car3,car4,car5];
-    var star1 = new star(50,50);
+    var star1 = new star(50,50,10);
+    var star2 = new star(400,60,5);
     function miniproject() {
         var i;
         ctx.clearRect(0,0,canvas.width,canvas.height);
@@ -186,16 +186,24 @@
         w.draw(b2);
         h.draw();
         star1.twinkle();
+        star2.twinkle();
         w.flashingLights(b);
         w.flashingLights(b2);
         w.flashingLights(b4);
         w.flashingLights(b6);
+        drawMoon();
         for (i = 0;i<5;i++) {
-            cars[i].draw();
-            cars[i].moveCar();
-            if (cars[i].x > canvas.width + 100 || cars[i].x < -100) {
-                delete cars[i];
-                cars[i] = new car(h,40,20,randomColor(), randomVel());
+            if (typeof cars[i] == "undefined") {
+                cars[i] = new car(h,40,20,randomColor(),randomVel());
+                h.avoidCrashes(cars,i);
+            }
+            if (cars[i].exists == true) {
+                cars[i].draw();
+                cars[i].moveCar();
+                if (cars[i].x > canvas.width + 100 || cars[i].x < -100) {
+                    delete cars[i];
+                    cars[i] = new car(h,40,20,randomColor(), randomVel());
+                }
             }
         }
         requestAnimationFrame(miniproject);
