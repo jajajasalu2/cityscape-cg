@@ -25,7 +25,8 @@
         Shape.call(this,x,y,width,height);
         this.color = color;
         this.wndwX = [];
-        this.wndwY = [];
+        this.wndwY = []; 
+    }
     function wndw(width,height) {
         this.width = width;
         this.height = height;
@@ -188,7 +189,7 @@
         ctx.fillStyle = "black";
         ctx.closePath();
     }
-    var count = 0;
+    var count = 0,i;
     var b = new building(400,210,110,70,"#74bb90");
     var b2 = new building(500,110,210,170,"#a566c2");
     var b4 = new building(523,8,50,100,"#e5872a");
@@ -206,7 +207,6 @@
     var star1 = new star(50,50,10);
     var star2 = new star(400,60,5);
     function miniproject() {
-        var i;
         ctx.clearRect(0,0,canvas.width,canvas.height);
         bback.draw();wback.draw(bback);
         b6.draw();
@@ -238,6 +238,5 @@
     }
     miniproject();
 </script>
-
 </body>
 </html>
